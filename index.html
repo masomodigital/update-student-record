@@ -1,240 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Record Update</title>
     <style>
-      /* Styling for the page */
       body {
         font-family: Arial, sans-serif;
-        margin: 20px;
+        text-align: center;
       }
-
-      h2, h3 {
-        color: #4CAF50;
-      }
-
-      label {
+      .error {
+        color: red;
         font-weight: bold;
       }
-
-      input, select {
-        margin: 10px 0;
-        padding: 8px;
-        width: 100%;
-        box-sizing: border-box;
+      .success {
+        color: green;
+        font-weight: bold;
       }
-
-      button {
-        background-color: green;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        cursor: pointer;
-        margin: 10px 0;
-      }
-
-      button:hover {
-        background-color: darkgreen;
-      }
-
-      #editSection {
-        margin-top: 20px;
-        display: none;
-      }
-
-      .checkbox-group {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-
-      .checkbox-group label {
-        font-size: 14px;
-      }
-
-      .student-card {
-        margin: 10px 0;
-        padding: 10px;
-        background-color: #f9f9f9;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-      }
-
-      .admission-number {
-        color: #007BFF;
-        cursor: pointer;
-      }
-
-      .admission-number:hover {
-        text-decoration: underline;
-      }
-
-      #result {
-        margin-top: 20px;
+      .loading {
+        color: blue;
         font-weight: bold;
       }
     </style>
   </head>
   <body>
-    <h2>Update Student Record</h2>
+    <h1>Student Record Update</h1>
+    <p>Please enter the Admission Number to edit the student's details:</p>
+    
+    <input type="text" id="admissionNumber" placeholder="Enter Admission Number">
+    <button onclick="loadStudentData()">Load Student</button>
 
-    <label>Enter Admission Number:</label>
-    <input type="text" id="admission" placeholder="e.g. ADM123">
-    <button onclick="searchStudent()">Search</button>
-
-    <!-- New button to get pupil admission number -->
-    <button onclick="window.open('https://script.google.com/macros/s/YOUR_WEB_APP_URL/exec', '_blank')">Get Pupil Admission Number</button>
-
-    <!-- Display last 5 students -->
-    <h3>Last 5 Students</h3>
-    <div id="lastFiveStudents"></div>
-
-    <div id="editSection">
-      <label>Name:</label><br>
-      <input type="text" id="name"><br>
-
-      <label>Grade:</label><br>
-      <input type="text" id="grade"><br>
-
-      <label>Term:</label><br>
-      <input type="text" id="term"><br>
-
-      <label>Check the items:</label>
-      <div class="checkbox-group" id="checkboxes"></div>
-
-      <label>Gender:</label><br>
-      <select id="gender">
-        <option value="">--Select Gender--</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-      </select><br>
-
-      <label>Bal C/F:</label><br>
-      <input type="text" id="balcf"><br>
-
-      <label>Phone Number:</label><br>
-      <input type="text" id="phone"><br>
-
-      <button onclick="updateStudent()">Update Student Record</button>
+    <div id="studentDetails" style="display: none;">
+      <h2>Edit Student Details</h2>
+      <form id="studentForm" onsubmit="submitForm(event)">
+        <div>
+          <label for="name">Name:</label>
+          <input type="text" id="name" required>
+        </div>
+        <div>
+          <label for="grade">Grade:</label>
+          <input type="text" id="grade" required>
+        </div>
+        <div>
+          <label for="term">Term:</label>
+          <input type="text" id="term" required>
+        </div>
+        <div>
+          <label for="phone">Phone:</label>
+          <input type="text" id="phone">
+        </div>
+        <button type="submit">Update</button>
+      </form>
+      <div id="statusMessage"></div>
     </div>
 
-    <div id="result"></div>
+    <div id="errorMessage" class="error"></div>
+    <div id="successMessage" class="success"></div>
+    <div id="loadingMessage" class="loading"></div>
 
     <script>
-      let currentRowIndex = null;
-      const checkboxLabels = ["Book Fund", "Computer", "Lunch", "Porridge", "Exam", "Diary", "Assessment", "Reams", "Stationery", "Activity", "Admission", "Interview", "Track suit", "Sweater"];
+      // Replace this with your Google Apps Script web app URL
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec";
 
-      const webAppURL = 'https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec'; // Replace with your actual Web App URL
-
-      function searchStudent() {
-        const admission = document.getElementById("admission").value.trim();
-        if (!admission) return alert("Please enter admission number.");
-
-        document.getElementById("result").innerText = "Searching...";
-
-        fetch(`${webAppURL}?admission=${admission}`, { method: 'GET' })
-          .then(response => response.json())
-          .then(data => {
-            if (!data) {
-              document.getElementById("result").innerText = "❌ Student not found!";
-              document.getElementById("editSection").style.display = "none";
-              return;
-            }
-
-            currentRowIndex = data.rowIndex;
-            document.getElementById("name").value = data.name;
-            document.getElementById("grade").value = data.grade;
-            document.getElementById("term").value = data.term;
-
-            const container = document.getElementById("checkboxes");
-            container.innerHTML = "";
-            data.checkboxes.forEach((val, i) => {
-              container.innerHTML += 
-                `<label><input type="checkbox" id="cb${i}" ${val === true ? "checked" : ""}> ${checkboxLabels[i]}</label>`;
-            });
-
-            document.getElementById("balcf").value = data.balcf || "";
-            document.getElementById("gender").value = data.gender || "";
-            document.getElementById("phone").value = data.phone || "";
-
-            document.getElementById("editSection").style.display = "block";
-            document.getElementById("result").innerText = "";
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            document.getElementById("result").innerText = "Error fetching student data.";
-          });
-      }
-
-      function updateStudent() {
-        const updated = {
-          name: document.getElementById("name").value.trim(),
-          grade: document.getElementById("grade").value.trim(),
-          term: document.getElementById("term").value.trim(),
-          checkboxes: [],
-          balcf: document.getElementById("balcf").value.trim(),
-          gender: document.getElementById("gender").value.trim(),
-          phone: document.getElementById("phone").value.trim()
-        };
-
-        for (let i = 0; i < checkboxLabels.length; i++) {
-          updated.checkboxes.push(document.getElementById("cb" + i).checked);
+      // Load student data by admission number
+      function loadStudentData() {
+        const admissionNumber = document.getElementById('admissionNumber').value;
+        if (admissionNumber) {
+          document.getElementById('loadingMessage').innerText = 'Please wait... Loading student details.';
+          document.getElementById('studentDetails').style.display = 'none';
+          fetchStudentData(admissionNumber);
+        } else {
+          document.getElementById('errorMessage').innerText = 'Admission number is required.';
         }
-
-        document.getElementById("result").innerHTML = '<b style="color: green;">Updating...</b>';
-
-        fetch(`${webAppURL}?action=update&rowIndex=${currentRowIndex}&updatedData=${JSON.stringify(updated)}`, { method: 'GET' })
-          .then(response => response.json())
-          .then(msg => {
-            document.getElementById("result").innerText = msg;
-            document.getElementById("editSection").style.display = "none";
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            document.getElementById("result").innerText = "Error updating student data.";
-          });
       }
 
-      function loadLastFiveStudents() {
-        fetch(`${webAppURL}?action=lastFive`, { method: 'GET' })
+      // Fetch student data from Google Apps Script
+      function fetchStudentData(admissionNumber) {
+        fetch(scriptUrl + "?action=getStudentForEdit&admissionNumber=" + admissionNumber)
           .then(response => response.json())
-          .then(students => {
-            const container = document.getElementById("lastFiveStudents");
-            container.innerHTML = "";
-
-            if (students.length === 0) {
-              container.innerHTML = "No student records available.";
-              return;
+          .then(student => {
+            if (student) {
+              document.getElementById('loadingMessage').innerText = '';
+              document.getElementById('studentDetails').style.display = 'block';
+              document.getElementById('name').value = student.name;
+              document.getElementById('grade').value = student.grade;
+              document.getElementById('term').value = student.term;
+              document.getElementById('phone').value = student.phone;
+            } else {
+              document.getElementById('errorMessage').innerText = 'No student found with the provided admission number.';
             }
-
-            students.forEach(student => {
-              container.innerHTML += 
-                `<div class="student-card">
-                  <strong>Admission:</strong> <span class="admission-number" onclick="copyAdmission('${student.admission}')">${student.admission}</span><br>
-                  <strong>Name:</strong> ${student.name}<br>
-                  <strong>Grade:</strong> ${student.grade}
-                </div>`;
-            });
           })
           .catch(error => {
-            console.error('Error:', error);
-            document.getElementById("lastFiveStudents").innerText = "Error loading student records.";
+            console.error(error);
+            document.getElementById('errorMessage').innerText = 'Error fetching student data.';
           });
       }
 
-      window.onload = function() {
-        loadLastFiveStudents();
-      };
+      // Submit the updated student data
+      function submitForm(event) {
+        event.preventDefault();
+        const updatedStudent = {
+          name: document.getElementById('name').value,
+          grade: document.getElementById('grade').value,
+          term: document.getElementById('term').value,
+          phone: document.getElementById('phone').value
+        };
+        const admissionNumber = document.getElementById('admissionNumber').value;
+        document.getElementById('loadingMessage').innerText = 'Updating student data...';
+        updateStudent(admissionNumber, updatedStudent);
+      }
 
-      function copyAdmission(admissionNumber) {
-        const tempInput = document.createElement("input");
-        tempInput.value = admissionNumber;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        alert("Admission number copied: " + admissionNumber);
+      // Update student data in Google Sheets
+      function updateStudent(admissionNumber, updatedStudent) {
+        fetch(scriptUrl + "?action=updateStudent&admissionNumber=" + admissionNumber + "&updated=" + JSON.stringify(updatedStudent))
+          .then(response => response.json())
+          .then(message => {
+            document.getElementById('loadingMessage').innerText = '';
+            document.getElementById('successMessage').innerText = message;
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          })
+          .catch(error => {
+            console.error(error);
+            document.getElementById('errorMessage').innerText = 'Error updating student data.';
+          });
       }
     </script>
   </body>
 </html>
+
