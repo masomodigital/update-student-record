@@ -3,7 +3,76 @@
   <head>
     <base target="_top">
     <style>
-      /* Your CSS code remains unchanged */
+      /* Styling for the page */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      h2, h3 {
+        color: #4CAF50;
+      }
+
+      label {
+        font-weight: bold;
+      }
+
+      input, select {
+        margin: 10px 0;
+        padding: 8px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      button {
+        background-color: green;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        margin: 10px 0;
+      }
+
+      button:hover {
+        background-color: darkgreen;
+      }
+
+      #editSection {
+        margin-top: 20px;
+        display: none;
+      }
+
+      .checkbox-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .checkbox-group label {
+        font-size: 14px;
+      }
+
+      .student-card {
+        margin: 10px 0;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      .admission-number {
+        color: #007BFF;
+        cursor: pointer;
+      }
+
+      .admission-number:hover {
+        text-decoration: underline;
+      }
+
+      #result {
+        margin-top: 20px;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body>
@@ -11,16 +80,16 @@
 
     <label>Enter Admission Number:</label>
     <input type="text" id="admission" placeholder="e.g. ADM123">
-    <button onclick="searchStudent()" style="background-color: green; color: white; padding: 10px 20px; border: none; cursor: pointer;">Search</button>
+    <button onclick="searchStudent()">Search</button>
 
     <!-- New button to get pupil admission number -->
-    <button onclick="window.open('https://script.google.com/macros/s/YOUR_WEB_APP_URL/exec', '_blank')" style="background-color: red; color: white; padding: 10px 20px; border: none; cursor: pointer;">Get Pupil Admission Number</button>
+    <button onclick="window.open('https://script.google.com/macros/s/YOUR_WEB_APP_URL/exec', '_blank')">Get Pupil Admission Number</button>
 
     <!-- Display last 5 students -->
     <h3>Last 5 Students</h3>
     <div id="lastFiveStudents"></div>
 
-    <div id="editSection" style="display:none; margin-top: 20px;">
+    <div id="editSection">
       <label>Name:</label><br>
       <input type="text" id="name"><br>
 
@@ -43,11 +112,10 @@
       <label>Bal C/F:</label><br>
       <input type="text" id="balcf"><br>
 
-      <!-- Added Phone Number input field -->
       <label>Phone Number:</label><br>
       <input type="text" id="phone"><br>
 
-      <button onclick="updateStudent()" style="background-color: green; color: white;">Update Student Record</button>
+      <button onclick="updateStudent()">Update Student Record</button>
     </div>
 
     <div id="result"></div>
@@ -56,7 +124,7 @@
       let currentRowIndex = null;
       const checkboxLabels = ["Book Fund", "Computer", "Lunch", "Porridge", "Exam", "Diary", "Assessment", "Reams", "Stationery", "Activity", "Admission", "Interview", "Track suit", "Sweater"];
 
-      const webAppURL = 'https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec';  // Replace with your actual Web App URL
+      const webAppURL = 'https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec'; // Replace with your actual Web App URL
 
       function searchStudent() {
         const admission = document.getElementById("admission").value.trim();
