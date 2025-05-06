@@ -1,217 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Record Update</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    label {
-      font-weight: bold;
-    }
-    input[type="text"], select {
-      padding: 8px;
-      width: 300px;
-      margin-bottom: 10px;
-    }
-    .checkbox-group {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px 20px;
-      margin-top: 10px;
-      text-align: left;
-    }
-    button {
-      padding: 8px 16px;
-      margin-top: 15px;
-      cursor: pointer;
-    }
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    #lastFiveStudents {
-      margin-top: 20px;
-      width: 320px;
-      text-align: left;
-    }
-    .student-card {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      background-color: #f9f9f9;
-    }
-    .admission-number {
-      color: blue;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Embedded Google Apps Script Web App</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        iframe {
+            width: 90%;
+            height: 90vh;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-  <h2>Update Student Record</h2>
-
-  <label>Enter Admission Number:</label>
-  <input type="text" id="admission" placeholder="e.g. ADM123">
-  <button onclick="searchStudent()" style="background-color: green; color: white;">Search</button>
-
-  <!-- Display last 5 students -->
-  <h3>Last 5 Students</h3>
-  <div id="lastFiveStudents"></div>
-
-  <div id="editSection" style="display:none; margin-top: 20px;">
-    <label>Name:</label><br>
-    <input type="text" id="name"><br>
-    <label>Grade:</label><br>
-    <input type="text" id="grade"><br>
-    <label>Term:</label><br>
-    <input type="text" id="term"><br>
-    <label>Check the items:</label>
-    <div class="checkbox-group" id="checkboxes"></div>
-    <label>Gender:</label><br>
-    <select id="gender">
-      <option value="">--Select Gender--</option>
-      <option value="Male">Male</option>
-      <option value="Female">Female</option>
-    </select><br>
-    <label>Bal C/F:</label><br>
-    <input type="text" id="balcf"><br>
-    <label>Phone Number:</label><br>
-    <input type="text" id="phone"><br>
-    <button onclick="updateStudent()" style="background-color: green; color: white;">Update Student Record</button>
-  </div>
-
-  <div id="result"></div>
-
-  <script>
-    let currentRowIndex = null;
-    const checkboxLabels = ["Book Fund", "Computer", "Lunch", "Porridge", "Exam", "Diary", "Assessment", "Reams", "Stationery", "Activity", "Admission", "Interview", "Track suit", "Sweater"];
-
-    // Search student using admission number
-    function searchStudent() {
-      const admission = document.getElementById("admission").value.trim();
-      if (!admission) return alert("Please enter admission number.");
-
-      document.getElementById("result").innerText = "Searching...";
-
-      fetch('https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec?admission=' + admission)  // Add your Apps Script URL here
-        .then(response => response.json())
-        .then(data => {
-          if (!data) {
-            document.getElementById("result").innerText = "❌ Student not found!";
-            document.getElementById("editSection").style.display = "none";
-            return;
-          }
-
-          currentRowIndex = data.rowIndex;
-          document.getElementById("name").value = data.name;
-          document.getElementById("grade").value = data.grade;
-          document.getElementById("term").value = data.term;
-
-          const container = document.getElementById("checkboxes");
-          container.innerHTML = "";
-          data.checkboxes.forEach((val, i) => {
-            container.innerHTML += 
-              `<label><input type="checkbox" id="cb${i}" ${val === true ? "checked" : ""}> ${checkboxLabels[i]}</label>`;
-          });
-
-          document.getElementById("balcf").value = data.balcf || "";
-          document.getElementById("gender").value = data.gender || "";
-          document.getElementById("phone").value = data.phone || "";
-
-          document.getElementById("editSection").style.display = "block";
-          document.getElementById("result").innerText = "";
-        })
-        .catch(error => {
-          document.getElementById("result").innerText = "❌ Error searching student!";
-        });
-    }
-
-    // Update student record
-    function updateStudent() {
-      const updated = {
-        name: document.getElementById("name").value.trim(),
-        grade: document.getElementById("grade").value.trim(),
-        term: document.getElementById("term").value.trim(),
-        checkboxes: [],
-        balcf: document.getElementById("balcf").value.trim(),
-        gender: document.getElementById("gender").value.trim(),
-        phone: document.getElementById("phone").value.trim()
-      };
-
-      for (let i = 0; i < checkboxLabels.length; i++) {
-        updated.checkboxes.push(document.getElementById("cb" + i).checked);
-      }
-
-      document.getElementById("result").innerHTML = '<b style="color: green;">Updating...</b>';
-
-      fetch('https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec?update=true', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updated)
-      })
-      .then(response => response.json())
-      .then(msg => {
-        document.getElementById("result").innerText = msg;
-        document.getElementById("editSection").style.display = "none";
-      })
-      .catch(error => {
-        document.getElementById("result").innerText = "❌ Error updating student!";
-      });
-    }
-
-    // Load last 5 students
-    function loadLastFiveStudents() {
-      fetch('YOUR_GOOGLE_APPS_SCRIPT_URL?last=5')
-        .then(response => response.json())
-        .then(students => {
-          const container = document.getElementById("lastFiveStudents");
-          container.innerHTML = "";
-
-          if (students.length === 0) {
-            container.innerHTML = "No student records available.";
-            return;
-          }
-
-          students.forEach(student => {
-            container.innerHTML += 
-              `<div class="student-card">
-                <strong>Admission:</strong> <span class="admission-number" onclick="copyAdmission('${student.admission}')">${student.admission}</span><br>
-                <strong>Name:</strong> ${student.name}<br>
-                <strong>Grade:</strong> ${student.grade}
-              </div>`;
-          });
-        })
-        .catch(error => {
-          document.getElementById("lastFiveStudents").innerText = "❌ Error loading students!";
-        });
-    }
-
-    // Onload function
-    window.onload = function() {
-      loadLastFiveStudents();
-    };
-
-    // Copy admission number
-    function copyAdmission(admissionNumber) {
-      const tempInput = document.createElement("input");
-      tempInput.value = admissionNumber;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand("copy");
-      document.body.removeChild(tempInput);
-      alert("Admission number copied: " + admissionNumber);
-    }
-  </script>
+    <h1>Google Apps Script Web App Embed</h1>
+    <iframe src="https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec" allowfullscreen></iframe>
 </body>
 </html>
-
