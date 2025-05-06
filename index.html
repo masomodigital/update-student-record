@@ -1,225 +1,117 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Record Update</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+    select, input {
+      margin: 10px;
+      padding: 8px;
+      width: 250px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .message {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <h2>Student Record Update</h2>
+  <form id="studentForm">
+    <input type="text" id="admissionNumber" placeholder="Enter Admission Number" required><br>
+    <button type="button" onclick="fetchStudentData()">Fetch Student</button>
+  </form>
+  
+  <div class="message" id="message"></div>
+  
+  <div class="table-container" id="studentData"></div>
+
+  <script>
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec'; // Replace with your Google Apps Script URL
+
+    // Function to fetch student data based on admission number
+    function fetchStudentData() {
+      const admissionNumber = document.getElementById('admissionNumber').value.trim();
+      if (!admissionNumber) {
+        alert('Please enter an admission number.');
+        return;
       }
-      label {
-        font-weight: bold;
-      }
-      input[type="text"], select {
-        padding: 8px;
-        width: 300px;
-        margin-bottom: 10px;
-      }
-      .checkbox-group {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px 20px;
-        margin-top: 10px;
-        text-align: left;
-      }
-      button {
-        padding: 8px 16px;
-        margin-top: 15px;
-        cursor: pointer;
-      }
-      #result {
-        margin-top: 20px;
-        font-weight: bold;
-      }
-      #lastFiveStudents {
-        margin-top: 20px;
-        width: 320px;
-        text-align: left;
-      }
-      .student-card {
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        background-color: #f9f9f9;
-      }
-      .admission-number {
-        color: blue;
-        cursor: pointer;
-        text-decoration: underline;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Update Student Record</h2>
+      
+      // Display loading message
+      document.getElementById('message').textContent = 'Fetching student data...';
 
-    <label>Enter Admission Number:</label>
-    <input type="text" id="admission" placeholder="e.g. ADM123">
-    <button onclick="searchStudent()" style="background-color: green; color: white; padding: 10px 20px; border: none; cursor: pointer;">Search</button>
-
-    <!-- New button to get pupil admission number -->
-    <button onclick="window.open('https://script.google.com/macros/s/AKfycby_kNuMOxa5pVRJWJdxHpgeSJzDYsOdftnNpcMiirGoFiEdLbDn5eKEiGowgFxbAatQ/exec', '_blank')" style="background-color: red; color: white; padding: 10px 20px; border: none; cursor: pointer;">Get Pupil Admission Number</button>
-
-    <!-- Display last 5 students -->
-    <h3>Last 5 Students</h3>
-    <div id="lastFiveStudents"></div>
-
-    <div id="editSection" style="display:none; margin-top: 20px;">
-      <label>Name:</label><br>
-      <input type="text" id="name"><br>
-
-      <label>Grade:</label><br>
-      <input type="text" id="grade"><br>
-
-      <label>Term:</label><br>
-      <input type="text" id="term"><br>
-
-      <label>Check the items:</label>
-      <div class="checkbox-group" id="checkboxes"></div>
-
-      <label>Gender:</label><br>
-      <select id="gender">
-        <option value="">--Select Gender--</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-      </select><br>
-
-      <label>Bal C/F:</label><br>
-      <input type="text" id="balcf"><br>
-
-      <!-- Added Phone Number input field -->
-      <label>Phone Number:</label><br>
-      <input type="text" id="phone"><br>
-
-      <button onclick="updateStudent()" style="background-color: green; color: white;">Update Student Record</button>
-    </div>
-
-    <div id="result"></div>
-
-    <script>
-      let currentRowIndex = null;
-      const checkboxLabels = ["Book Fund", "Computer", "Lunch", "Porridge", "Exam", "Diary", "Assessment", "Reams", "Stationery", "Activity", "Admission", "Interview", "Track suit", "Sweater"];
-
-      // Function to search for a student by admission number
-      function searchStudent() {
-        const admission = document.getElementById("admission").value.trim();
-        if (!admission) return alert("Please enter admission number.");
-
-        document.getElementById("result").innerText = "Searching...";
-
-        fetch(`https://script.google.com/macros/s/AKfycbxuS9GZGOW-wWgTHlzKzziio_pk6ruxaKe8uYdSpbnzh_xH2I1r8Pzq6YahoVkqVYrg/exec?admission=${admission}`)
-          .then(response => response.json())
-          .then(data => {
-            if (!data) {
-              document.getElementById("result").innerText = "❌ Student not found!";
-              document.getElementById("editSection").style.display = "none";
-              return;
-            }
-
-            currentRowIndex = data.rowIndex;
-            document.getElementById("name").value = data.name;
-            document.getElementById("grade").value = data.grade;
-            document.getElementById("term").value = data.term;
-
-            const container = document.getElementById("checkboxes");
-            container.innerHTML = "";
-            data.checkboxes.forEach((val, i) => {
-              container.innerHTML += 
-                `<label><input type="checkbox" id="cb${i}" ${val === true ? "checked" : ""}> ${checkboxLabels[i]}</label>`;
-            });
-
-            document.getElementById("balcf").value = data.balcf || "";
-            document.getElementById("gender").value = data.gender || "";
-            document.getElementById("phone").value = data.phone || "";
-
-            document.getElementById("editSection").style.display = "block";
-            document.getElementById("result").innerText = "";
-          })
-          .catch(err => {
-            document.getElementById("result").innerText = "❌ Error fetching student data.";
-            console.error(err);
-          });
-      }
-
-      // Function to update a student's record
-      function updateStudent() {
-        const updated = {
-          name: document.getElementById("name").value.trim(),
-          grade: document.getElementById("grade").value.trim(),
-          term: document.getElementById("term").value.trim(),
-          checkboxes: [],
-          balcf: document.getElementById("balcf").value.trim(),
-          gender: document.getElementById("gender").value.trim(),
-          phone: document.getElementById("phone").value.trim()
-        };
-
-        for (let i = 0; i < checkboxLabels.length; i++) {
-          updated.checkboxes.push(document.getElementById("cb" + i).checked);
-        }
-
-        document.getElementById("result").innerHTML = '<b style="color: green;">Updating...</b>';
-
-        fetch('https://script.google.com/macros/s/AKfycbw.../exec', {
-          method: 'POST',
-          body: JSON.stringify({ rowIndex: currentRowIndex, updatedData: updated }),
-          headers: { 'Content-Type': 'application/json' }
+      fetch(`${scriptUrl}?admission=${admissionNumber}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data === '❌ Student not found') {
+            document.getElementById('message').textContent = data;
+            document.getElementById('studentData').innerHTML = '';
+          } else {
+            displayStudentData(data);
+          }
         })
-          .then(response => response.json())
-          .then(msg => {
-            document.getElementById("result").innerText = msg;
-            document.getElementById("editSection").style.display = "none";
-          })
-          .catch(err => {
-            document.getElementById("result").innerText = "❌ Error updating student data.";
-            console.error(err);
-          });
-      }
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('message').textContent = 'An error occurred while fetching data.';
+        });
+    }
 
-      // Function to load the last five students
-      function loadLastFiveStudents() {
-        fetch('https://script.google.com/macros/s/AKfycbw.../exec?last=5')
-          .then(response => response.json())
-          .then(students => {
-            const container = document.getElementById("lastFiveStudents");
-            container.innerHTML = "";
+    // Function to display student data
+    function displayStudentData(data) {
+      let html = `
+        <h3>Student Details</h3>
+        <table>
+          <tr><th>Name</th><td>${data.name}</td></tr>
+          <tr><th>Grade</th><td>${data.grade}</td></tr>
+          <tr><th>Term</th><td>${data.term}</td></tr>
+          <tr><th>Gender</th><td>${data.gender}</td></tr>
+          <tr><th>Phone</th><td>${data.phone}</td></tr>
+        </table>
+      `;
+      document.getElementById('message').textContent = 'Student data loaded successfully.';
+      document.getElementById('studentData').innerHTML = html;
+    }
+  </script>
 
-            if (students.length === 0) {
-              container.innerHTML = "No student records available.";
-              return;
-            }
-
-            students.forEach(student => {
-              container.innerHTML += 
-                `<div class="student-card">
-                  <strong>Admission:</strong> <span class="admission-number" onclick="copyAdmission('${student.admission}')">${student.admission}</span><br>
-                  <strong>Name:</strong> ${student.name}<br>
-                  <strong>Grade:</strong> ${student.grade}
-                </div>`;
-            });
-          })
-          .catch(err => {
-            document.getElementById("lastFiveStudents").innerText = "❌ Error fetching students.";
-            console.error(err);
-          });
-      }
-
-      // Function to copy admission number to clipboard
-      function copyAdmission(admissionNumber) {
-        const tempInput = document.createElement("input");
-        tempInput.value = admissionNumber;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        alert("Admission number copied: " + admissionNumber);
-      }
-
-      window.onload = function() {
-        loadLastFiveStudents();
-      };
-    </script>
-  </body>
+</body>
 </html>
